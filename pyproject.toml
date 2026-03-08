@@ -1,0 +1,38 @@
+[project]
+name = "academic-system"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "fekry",email = "ahmedsam3r@gmail.com"}
+]
+readme = "README.md"
+
+[tool.poetry]
+packages = [{include = "*", from = "config"}]
+
+[tool.poetry.dependencies]
+python = ">=3.12,<4"
+django = ">=6.0.3,<7.0.0"
+djangorestframework = ">=3.16.1,<4.0.0"
+psycopg2-binary = ">=2.9.11,<3.0.0"
+celery = ">=5.6.2,<6.0.0"
+redis = ">=7.3.0,<8.0.0"
+django-environ = ">=0.13.0,<0.14.0"
+django-health-check = "^4.1.2"
+psutil = "^7.2.2"
+psycopg2 = "^2.9.11"
+psycopg = {extras = ["pool"], version = "^3.3.3"}
+drf-spectacular = "^0.29.0"
+
+
+
+[tool.poetry.group.dev.dependencies]
+black = "^26.3.0"
+flake8 = "^7.3.0"
+isort = "^8.0.1"
+mypy = "^1.19.1"
+pre-commit = "^4.5.1"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

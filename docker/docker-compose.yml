@@ -1,0 +1,114 @@
+services:
+
+  backend:
+    build: 
+      context: .
+      dockerfile: docker/django/Dockerfile
+    command: python manage.py runserver 0.0.0.0:8000
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env.dev
+    networks:
+      - academia_network
+    volumes:
+      - .:/app
+    depends_on:
+      db:
+        condition: service_healthy
+      db_migrations:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+      rabbitmq:
+
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/v1/health-check/ || exit 1"]
+      interval: 5m10s
+      timeout: 10s
+      retries: 3
+
+    restart: always
+
+
+  celery_worker:
+    build:
+      context: .
+    container_name: celery_worker
+    command: celery -A config worker -l info
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+  db:
+    image: "postgres:18-alpine"
+    restart: always
+    env_file:
+      - ./.env.dev
+    environment:
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_PORT: ${DB_PORT}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      academia_network:
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -q -d $$POSTGRES_DB -U $$POSTGRES_USER"]
+      interval: 5m1s
+      timeout: 5s
+      retries: 5
+
+  db_migrations:
+    build:
+      context: .
+    command: bash -c "
+      python manage.py makemigrations
+      && python manage.py migrate"
+
+    env_file:
+      - ./.env.dev
+    networks:
+      - academia_network
+    depends_on:
+      db: 
+        condition: service_healthy
+
+  redis:
+    image: "redis:alpine"
+    container_name: redis-academia
+    ports:
+      - "6382:6379"
+    networks: 
+      - academia_network
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli","ping"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 3
+      start_period: 5s
+    
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq-academia
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+ 
+networks:
+  academia_network:
+
+volumes:
+  postgres_data:
+  redis_data:
+    external: false
