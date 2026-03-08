@@ -3,7 +3,7 @@ from django.db import models
 
 
 class Enrollment(models.Model):
-    # TODO utilize Django’s ORM optimization techniques 
+    # TODO utilize Django’s ORM optimization techniques
     # TODO (e.g., aggregation, indexing, or materialized view
     class Status(models.TextChoices):
         PENDING = "pending", "Pending"
@@ -16,18 +16,24 @@ class Enrollment(models.Model):
         related_name="enrollments",
         db_index=True,
     )
-    # TODO check whether grade needs normalization 
+    # TODO check whether grade needs normalization
     grade = models.CharField(
-        validators=[validators.MinLengthValidator(3),
-                    validators.MaxLengthValidator(255)],
+        validators=[
+            validators.MinLengthValidator(3),
+            validators.MaxLengthValidator(255),
+        ],
     )
     region = models.CharField(
-        validators=[validators.MinLengthValidator(3),
-                    validators.MaxLengthValidator(255)],
+        validators=[
+            validators.MinLengthValidator(3),
+            validators.MaxLengthValidator(255),
+        ],
     )
     school = models.CharField(
-        validators=[validators.MinLengthValidator(3),
-                    validators.MaxLengthValidator(255)],
+        validators=[
+            validators.MinLengthValidator(3),
+            validators.MaxLengthValidator(255),
+        ],
     )
     status = models.CharField(
         max_length=20,

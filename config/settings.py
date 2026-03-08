@@ -11,14 +11,14 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
+from typing import Optional
 
 import environ
-
 
 env = environ.Env()
 BASE_DIR = Path(__file__).resolve().parent.parent
 ENV_FILE_NAME = ".env.dev"
-ENV_PATH = str(BASE_DIR/ENV_FILE_NAME)
+ENV_PATH = str(BASE_DIR / ENV_FILE_NAME)
 env.read_env(ENV_PATH)
 
 print(f"BASE_DIR: {BASE_DIR}")
@@ -35,7 +35,7 @@ SECRET_KEY = env.str("SECRET_KEY", "my-secret")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS: list[Optional[str]] = []
 
 
 # Application definition
@@ -50,13 +50,11 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # third party apps
     "rest_framework",
-    'health_check',  # See https://github.com/revsys/django-health-check
+    "health_check",  # See https://github.com/revsys/django-health-check
     "drf_spectacular",
-
     # 'health_check.db',
-    'health_check.contrib.psutil',
-    'health_check.contrib.redis',
-
+    "health_check.contrib.psutil",
+    "health_check.contrib.redis",
     # local apps
     "students",
     "enrollments",
@@ -180,8 +178,8 @@ CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND")
 # health check vars
 HEALTHCHECK_CACHE_KEY = "test_key"
 HEALTH_CHECK = {
-    'DISK_USAGE_MAX': 90,  # percent
-    'MEMORY_MIN': 100,    # in MB
+    "DISK_USAGE_MAX": 90,  # percent
+    "MEMORY_MIN": 100,  # in MB
 }
 
 SPECTACULAR_SETTINGS = {

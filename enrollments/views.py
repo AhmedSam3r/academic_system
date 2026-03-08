@@ -1,12 +1,14 @@
-from rest_framework.views import APIView
-from rest_framework.generics import GenericAPIView
-from rest_framework.response import Response
-from .models import Enrollment
-from .serializers import (
-    EnrollmentStatsQuerySerializer, EnrollmentCreateSerializer,
-)
 from drf_spectacular.utils import extend_schema
 from rest_framework import status
+from rest_framework.generics import GenericAPIView
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from .models import Enrollment
+from .serializers import (
+    EnrollmentCreateSerializer,
+    EnrollmentStatsQuerySerializer,
+)
 
 
 class EnrollmentCreateView(GenericAPIView):
