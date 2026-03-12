@@ -21,10 +21,6 @@ ENV_FILE_NAME = ".env.dev"
 ENV_PATH = str(BASE_DIR / ENV_FILE_NAME)
 env.read_env(ENV_PATH)
 
-print(f"BASE_DIR: {BASE_DIR}")
-print(f"ENV_PATH: {ENV_PATH}")
-print("DB_NAME -->", env.get_value("DB_NAME"))
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
@@ -174,6 +170,10 @@ CELERY_TASK_TRACK_STARTED = True
 CELERY_TASK_TIME_LIMIT = env("CELERY_TASK_TIME_LIMIT", default=30 * 60)
 CELERY_BROKER_URL = env("CELERY_BROKER_URL")
 CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND")
+CELERY_TASK_ROUTES = {
+    "enrollments.tasks.process_enrollment_batch": {"queue": "main"},
+}
+CELERY_ENROLLMENT_BATCH_SIZE = env("CELERY_ENROLLMENT_BATCH_SIZE", default=500)
 
 # health check vars
 HEALTHCHECK_CACHE_KEY = "test_key"

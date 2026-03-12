@@ -23,6 +23,7 @@ psutil = "^7.2.2"
 psycopg2 = "^2.9.11"
 psycopg = {extras = ["pool"], version = "^3.3.3"}
 drf-spectacular = "^0.29.0"
+uuid-utils = "^0.14.1"
 
 
 [tool.isort]

@@ -6,6 +6,6 @@ from .models import Student
 @admin.register(Student)
 class UserCustomAdmin(admin.ModelAdmin):
     model = Student
-    list_display = ("id", "email", "name", "verified", "enrolled_at")
+    list_display = ("id", "email", "name", "verified")
     list_filter = ("email",)
     ordering = ("id",)

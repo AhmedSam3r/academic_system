@@ -1,0 +1,45 @@
+queues {'main': <unbound Queue main -> <unbound Exchange main(direct)> -> main>, 'main-retry': <unbound Queue main-retry -> <unbound Exchange main-retry(direct)> -> main-retry>, 'main-dlq': <unbound Queue main-dlq -> <unbound Exchange main-dlx(direct)> -> main-dlq>}
+{'queue_arguments': {'x-dead-letter-exchange': 'main-dlx', 'x-dead-letter-routing-key': 'main-dlq'}, 'binding_arguments': None, 'consumer_arguments': None, 'durable': True, 'alias': None, 'bindings': set(), 'no_declare': None, 'expires': None, 'message_ttl': None, 'max_length': None, 'max_length_bytes': None, 'max_priority': None, 'name': 'main', 'exchange': <unbound Exchange main(direct)>, 'routing_key': 'main', 'on_declared': None}
+{'queue_arguments': {'x-message-ttl': 60000, 'x-dead-letter-exchange': 'main', 'x-dead-letter-routing-key': 'main'}, 'binding_arguments': None, 'consumer_arguments': None, 'durable': True, 'alias': None, 'bindings': set(), 'no_declare': None, 'expires': None, 'message_ttl': 60000.0, 'max_length': None, 'max_length_bytes': None, 'max_priority': None, 'name': 'main-retry', 'exchange': <unbound Exchange main-retry(direct)>, 'routing_key': 'main-retry', 'on_declared': None}
+{'queue_arguments': {'x-message-ttl': 2592000000, 'x-expires': 2592000000}, 'binding_arguments': None, 'consumer_arguments': None, 'durable': True, 'alias': None, 'bindings': set(), 'no_declare': None, 'expires': None, 'message_ttl': None, 'max_length': None, 'max_length_bytes': None, 'max_priority': None, 'name': 'main-dlq', 'exchange': <unbound Exchange main-dlx(direct)>, 'routing_key': 'main-dlq', 'on_declared': None}
+QUEUE_FORMAT: 
+.> {0.name:<16} exchange={0.exchange.name}({0.exchange.type}) key={0.routing_key}
+
+QUEUE_FORMAT.strip(): .> {0.name:<16} exchange={0.exchange.name}({0.exchange.type}) key={0.routing_key}
+q: <unbound Queue main -> <unbound Exchange main(direct)> -> main>
+QUEUE_FORMAT: 
+.> {0.name:<16} exchange={0.exchange.name}({0.exchange.type}) key={0.routing_key}
+
+QUEUE_FORMAT.strip(): .> {0.name:<16} exchange={0.exchange.name}({0.exchange.type}) key={0.routing_key}
+q: <unbound Queue main-dlq -> <unbound Exchange main-dlx(direct)> -> main-dlq>
+QUEUE_FORMAT: 
+.> {0.name:<16} exchange={0.exchange.name}({0.exchange.type}) key={0.routing_key}
+
+QUEUE_FORMAT.strip(): .> {0.name:<16} exchange={0.exchange.name}({0.exchange.type}) key={0.routing_key}
+q: <unbound Queue main-retry -> <unbound Exchange main-retry(direct)> -> main-retry>
+['.> main             exchange=main(direct) key=main', '.> main-dlq         exchange=main-dlx(direct) key=main-dlq', '.> main-retry       exchange=main-retry(direct) key=main-retry']
+[1;36m 
+ -------------- celery@ahmed-3510 v5.6.2 (recovery)
+--- ***** ----- 
+-- ******* ---- Linux-6.8.0-101-generic-x86_64-with-glibc2.35 2026-03-11 02:53:21
+- *** --- * --- 
+- ** ---------- [config]
+- ** ---------- .> app:         config:0x7a178dfdda60
+- ** ---------- .> transport:   amqp://admin:**@localhost:5672//
+- ** ---------- .> results:     redis://localhost:6379/0
+- *** --- * --- .> concurrency: 8 (prefork)
+-- ******* ---- .> task events: OFF (enable -E to monitor tasks in this worker)
+--- ***** ----- 
+ -------------- [queues]
+                .> main             exchange=main(direct) key=main
+                .> main-dlq         exchange=main-dlx(direct) key=main-dlq
+                .> main-retry       exchange=main-retry(direct) key=main-retry
+[0m[0m
+[tasks]
+  . config.celery.debug_task
+  . enrollments.tasks.process_enrollment_batch
+[0m
+
+worker: Hitting Ctrl+C again will initiate cold shutdown, terminating all running tasks!
+
+worker: Warm shutdown (MainProcess)
