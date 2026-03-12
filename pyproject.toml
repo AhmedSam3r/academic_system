@@ -1,13 +1,10 @@
-[project]
+[tool.poetry]
 name = "academic-system"
 version = "0.1.0"
 description = ""
-authors = [
-    {name = "fekry",email = "ahmedsam3r@gmail.com"}
-]
+authors = ["Fekry ahmed@gmail.com"]
 readme = "README.md"
 
-[tool.poetry]
 packages = [{include = "*", from = "config"}]
 
 [tool.poetry.dependencies]

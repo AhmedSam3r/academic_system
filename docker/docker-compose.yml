@@ -1,10 +1,24 @@
 services:
 
   backend:
-    build: 
-      context: .
-      dockerfile: docker/django/Dockerfile
-    command: python manage.py runserver 0.0.0.0:8000
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    command: >
+      gunicorn config.wsgi:application
+        --bind 0.0.0.0:8000
+        --workers 4
+        --worker-class gthread
+        --threads 2
+        --worker-tmp-dir /dev/shm
+        --timeout 60
+        --graceful-timeout 30
+        --keep-alive 5
+        --max-requests 1000
+        --max-requests-jitter 100
+        --log-level info
+        --access-logfile -
+        --error-logfile -
     ports:
       - "8000:8000"
     env_file:
@@ -13,6 +27,9 @@ services:
       - academia_network
     volumes:
       - .:/app
+      # tmpfs for gunicorn worker heartbeat files — avoids disk I/O
+      - type: tmpfs
+        target: /dev/shm
     depends_on:
       db:
         condition: service_healthy
@@ -21,94 +38,147 @@ services:
       redis:
         condition: service_healthy
       rabbitmq:
-
+        condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8000/v1/health-check/ || exit 1"]
-      interval: 5m10s
+      interval: 30s
       timeout: 10s
       retries: 3
-
+      start_period: 10s
     restart: always
 
 
   celery_worker:
     build:
-      context: .
+      context: ..
+      dockerfile: docker/Dockerfile
     container_name: celery_worker
-    command: celery -A config worker -l info
+    command: >
+      celery -A config worker
+        --loglevel=info
+        --queues=main
+        --concurrency=4
+        --prefetch-multiplier=1
+        --max-tasks-per-child=1000
+        --hostname=worker@%h
     volumes:
       - .:/app
     env_file:
-      - .env
+      - .env.dev
+    networks:
+      - academia_network
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
       rabbitmq:
+        condition: service_healthy
+      db_migrations:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A config inspect ping -d worker@$$HOSTNAME || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    restart: always
+
+
   db:
-    image: "postgres:18-alpine"
+    image: "postgres:16-alpine"
     restart: always
     env_file:
-      - ./.env.dev
+      - .env.dev
     environment:
       DB_NAME: ${DB_NAME}
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
-      DB_PORT: ${DB_PORT}
+    ports:
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      academia_network:
+      - academia_network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -q -d $$POSTGRES_DB -U $$POSTGRES_USER"]
-      interval: 5m1s
+      test: ["CMD-SHELL", "pg_isready -q -d $$DB_NAME -U $$DB_USER"]
+      interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
+
 
   db_migrations:
     build:
-      context: .
-    command: bash -c "
-      python manage.py makemigrations
-      && python manage.py migrate"
-
+      context: ..
+      dockerfile: docker/Dockerfile
+    command: >
+      bash -c "
+        python manage.py makemigrations
+        && python manage.py migrate"
+        
     env_file:
-      - ./.env.dev
+      - .env.dev
     networks:
       - academia_network
     depends_on:
-      db: 
+      db:
         condition: service_healthy
+    restart: on-failure
+
 
   redis:
-    image: "redis:alpine"
+    image: "redis:7-alpine"
     container_name: redis-academia
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
     ports:
       - "6382:6379"
-    networks: 
+    networks:
       - academia_network
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ["CMD", "redis-cli","ping"]
-      interval: 1m30s
-      timeout: 30s
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
       retries: 3
       start_period: 5s
-    
+    restart: always
+
+
   rabbitmq:
-    image: rabbitmq:3-management
+    image: rabbitmq:3-management-alpine
     container_name: rabbitmq-academia
+    hostname: rabbitmq-academia        # stable hostname keeps queue metadata across restarts
     ports:
       - "5672:5672"
       - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
+      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST:-/}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - academia_network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+    restart: always
 
- 
+
 networks:
   academia_network:
+    driver: bridge
+
 
 volumes:
   postgres_data:
   redis_data:
     external: false
+  rabbitmq_data:
+    external: false
+  
