@@ -62,7 +62,7 @@ def create_or_update_students(
     )
     student_objects = list(student_map.values())
     for chunk_start in range(0, len(student_objects), batch_size):
-        chunk = student_objects[chunk_start:chunk_start + batch_size]
+        chunk = student_objects[chunk_start : chunk_start + batch_size]
         Student.objects.bulk_create(
             objs=chunk,
             batch_size=batch_size,
