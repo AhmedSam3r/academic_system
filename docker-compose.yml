@@ -2,15 +2,14 @@ services:
 
   backend:
     build:
-      context: ..
-      dockerfile: docker/Dockerfile
+      context: .
+      dockerfile: Dockerfile
     command: >
       gunicorn config.wsgi:application
         --bind 0.0.0.0:8000
         --workers 4
         --worker-class gthread
         --threads 2
-        --worker-tmp-dir /dev/shm
         --timeout 60
         --graceful-timeout 30
         --keep-alive 5
@@ -22,14 +21,14 @@ services:
     ports:
       - "8000:8000"
     env_file:
-      - .env.dev
+      - ./.env
     networks:
       - academia_network
     volumes:
       - .:/app
       # tmpfs for gunicorn worker heartbeat files — avoids disk I/O
-      - type: tmpfs
-        target: /dev/shm
+      # - type: tmpfs
+      #   target: /dev/shm
     depends_on:
       db:
         condition: service_healthy
@@ -48,10 +47,48 @@ services:
     restart: always
 
 
+  db:
+    image: "postgres:16-alpine"
+    restart: on-failure
+    env_file:
+      - ./.env
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_PORT: ${DB_PORT}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - academia_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -q -d $$POSTGRES_DB -U $$POSTGRES_USER"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+
+  db_migrations:
+    build:
+      context: .
+    command: bash -c "
+      python manage.py makemigrations
+      && python manage.py migrate"
+        
+    env_file:
+      - ./.env
+    networks:
+      - academia_network
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: on-failure
+
   celery_worker:
     build:
-      context: ..
-      dockerfile: docker/Dockerfile
+      context: .
+      dockerfile: Dockerfile
     container_name: celery_worker
     command: >
       celery -A config worker
@@ -64,7 +101,7 @@ services:
     volumes:
       - .:/app
     env_file:
-      - .env.dev
+      - ./.env
     networks:
       - academia_network
     depends_on:
@@ -83,48 +120,6 @@ services:
       retries: 3
       start_period: 15s
     restart: always
-
-
-  db:
-    image: "postgres:16-alpine"
-    restart: always
-    env_file:
-      - .env.dev
-    environment:
-      DB_NAME: ${DB_NAME}
-      DB_USER: ${DB_USER}
-      DB_PASSWORD: ${DB_PASSWORD}
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - academia_network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -q -d $$DB_NAME -U $$DB_USER"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
-
-
-  db_migrations:
-    build:
-      context: ..
-      dockerfile: docker/Dockerfile
-    command: >
-      bash -c "
-        python manage.py makemigrations
-        && python manage.py migrate"
-        
-    env_file:
-      - .env.dev
-    networks:
-      - academia_network
-    depends_on:
-      db:
-        condition: service_healthy
-    restart: on-failure
 
 
   redis:
@@ -154,8 +149,8 @@ services:
       - "5672:5672"
       - "15672:15672"
     environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
       RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST:-/}
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
@@ -168,7 +163,6 @@ services:
       retries: 5
       start_period: 20s
     restart: always
-
 
 networks:
   academia_network:

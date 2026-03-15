@@ -23,9 +23,6 @@ from drf_spectacular.views import (
     SpectacularSwaggerView,
 )
 from health_check.views import HealthCheckView
-from redis.asyncio import Redis as RedisClient
-
-from .settings import CELERY_BROKER_URL
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -43,23 +40,9 @@ urlpatterns = [
     path(
         "v1/health-check/",
         HealthCheckView.as_view(
-            checks=[  # optional, default is all but 3rd party checks
-                "health_check.contrib.psutil.Disk",
-                "health_check.contrib.psutil.Memory",
-                "health_check.contrib.celery.Ping",
-                (  # tuple with options
-                    "health_check.contrib.rabbitmq.RabbitMQ",
-                    {"amqp_url": CELERY_BROKER_URL},
-                ),
-                (
-                    "health_check.contrib.redis.Redis",
-                    {
-                        "client_factory": lambda: RedisClient.from_url(
-                            "redis://localhost:6379"
-                        )
-                    },
-                ),
-            ],
+            checks=[
+                "health_check.checks.Database",
+            ]
         ),
     ),
     path("v1/api/enrollments/", include("enrollments.urls")),

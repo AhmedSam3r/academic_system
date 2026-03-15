@@ -22,6 +22,7 @@ psycopg = {extras = ["pool"], version = "^3.3.3"}
 drf-spectacular = "^0.29.0"
 uuid-utils = "^0.14.1"
 faker = "^40.8.0"
+gunicorn = "^25.1.0"
 
 
 [tool.isort]

@@ -168,16 +168,21 @@ The worker listens only to the **main queue**.
 
 The easiest way to run the full stack is using Docker Compose.
 
+```bash
+docker compose up --build
+```
+
+
 ### Build containers
 
 ```bash
-docker compose -f docker/docker-compose.yml build
+docker compose build
 ```
 
 ### Start services
 
 ```bash
-docker compose -f docker/docker-compose.yml up -d
+docker compose up -d
 ```
 
 ### Check running containers
@@ -189,7 +194,14 @@ docker compose ps
 ### View logs
 
 ```bash
-docker compose logs -f
+docker compose logs
+```
+
+
+### Stop services
+
+```bash
+docker compose down
 ```
 
 ---

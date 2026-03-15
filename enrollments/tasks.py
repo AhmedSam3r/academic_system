@@ -59,7 +59,6 @@ def process_enrollment_batch(
             batch_id=batch_id,
             enrollment_data=enrollment_data,
             persisted_map=student_results["persisted_map"],
-            student_objects=student_results["student_objects"],
             total_count=total_count,
         )
 

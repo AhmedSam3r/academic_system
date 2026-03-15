@@ -11,13 +11,12 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
-from typing import Optional
 
 import environ
 
 env = environ.Env()
 BASE_DIR = Path(__file__).resolve().parent.parent
-ENV_FILE_NAME = ".env.dev"
+ENV_FILE_NAME = ".env"
 ENV_PATH = str(BASE_DIR / ENV_FILE_NAME)
 env.read_env(ENV_PATH)
 
@@ -31,7 +30,7 @@ SECRET_KEY = env.str("SECRET_KEY", "my-secret")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS: list[Optional[str]] = []
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["localhost", "127.0.0.1"])
 
 
 # Application definition
