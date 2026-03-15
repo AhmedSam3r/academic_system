@@ -127,7 +127,7 @@ poetry run celery -A config worker -Q main -l info
 
 ### Configure environment variables
 
-Create a `.env.dev` file.
+#### Create a `.env` file for local testing
 
 Example:
 
@@ -140,6 +140,23 @@ DB_PORT=5432
 
 CELERY_BROKER_URL=amqp://guest:guest@localhost:5672//
 CELERY_RESULT_BACKEND=redis://localhost:6379/0
+```
+
+#### Create a `.env` file for docker testing
+
+Example:
+
+```
+DB_NAME=academia
+DB_USER=postgres
+DB_PASSWORD=postgres
+DB_HOST=db
+DB_PORT=5432
+
+RABBITMQ_USER="admin"
+RABBITMQ_PASSWORD="admin123"
+CELERY_BROKER_URL=amqp://guest:guest@rabbitmiq:5672//
+CELERY_RESULT_BACKEND=redis://redis:6379/0
 ```
 
 ### Run database migrations
