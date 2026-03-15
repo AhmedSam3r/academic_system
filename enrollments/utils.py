@@ -37,7 +37,7 @@ def validate_enrollment_batch(batch_id: uuid.UUID, task_id: uuid.UUID):
     return None
 
 
-def build_students_objects(enrollments: list[Enrollment]):
+def build_students_objects(enrollments: list[dict[str, Any]]):
     student_map: dict[str, Student] = {}
     student_rows = []
     for row in enrollments:
@@ -62,7 +62,7 @@ def create_or_update_students(
     )
     student_objects = list(student_map.values())
     for chunk_start in range(0, len(student_objects), batch_size):
-        chunk = student_objects[chunk_start : chunk_start + batch_size]
+        chunk = student_objects[chunk_start:chunk_start + batch_size]
         Student.objects.bulk_create(
             objs=chunk,
             batch_size=batch_size,
@@ -75,7 +75,8 @@ def create_or_update_students(
     emails = list(student_map.keys())
     # query using one trip to DB
     persisted_map = {
-        s.email: s for s in Student.objects.filter(email__in=emails).only("id", "email")
+        s.email: s for s in Student.objects.filter(
+            email__in=emails).only("id", "email")
     }
     result = {
         "persisted_map": persisted_map,
@@ -132,7 +133,7 @@ def create_enrollments(
     all_objs = success_objs + failed_objs
 
     for chunk_start in range(0, len(all_objs), batch_size):
-        chunk = all_objs[chunk_start : chunk_start + batch_size]
+        chunk = all_objs[chunk_start:chunk_start + batch_size]
         try:
             Enrollment.objects.bulk_create(
                 objs=chunk,
@@ -144,7 +145,9 @@ def create_enrollments(
         except Exception as db_exc:
             exc_msg = f"Chunk insert failed at {chunk_start} with batch_id: {batch_id}"  # noqa: E501
             logger.exception(exc_msg)
-            db_failed_count += sum(1 for obj in chunk if obj.status == Status.PROCESSED)
+            db_failed_count += sum(
+                1 for obj in chunk if obj.status == Status.PROCESSED
+            )
             obj: Enrollment
             for obj in chunk:
                 obj.status = Status.FAILED
